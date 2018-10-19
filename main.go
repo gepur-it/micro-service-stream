@@ -86,7 +86,6 @@ func webSockets(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	go client.writePump()
 	go client.readPump()
-	go client.query()
 }
 
 func main() {
@@ -94,6 +93,7 @@ func main() {
 	hub := hub()
 
 	go hub.run()
+	go hub.query()
 
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		webSockets(hub, w, r)

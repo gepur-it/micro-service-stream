@@ -3,32 +3,20 @@ package main
 import (
 	"encoding/json"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 type AppealStreamMessage struct {
-	AppealID string `json:"appealId"`
-	ManagerId *string `json:"managerId"`
-	Message string `json:"message"`
-	Action string `json:"action"`
-	ActionAt time.Time `json:"action_at"`
-	ReceivedAt time.Time `json:"received_at"`
-	Payload map[string]interface{}
+	AppealID   string  `json:"appealId"`
+	ManagerId  *string `json:"managerId"`
+	Message    string  `json:"message"`
+	Action     string  `json:"action"`
+	ActionAt   string  `json:"actionAt"`
+	ReceivedAt string  `json:"receivedAt"`
 }
 
-func (currentClient *Client) query() {
-	query, err := AMQPChannel.QueueDeclare(
-		"erp_to_socket_message",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	failOnError(err, "Failed to declare a queue")
-
+func (h *Hub) query() {
 	msgs, err := AMQPChannel.Consume(
-		query.Name,
+		"erp_to_socket_appeal",
 		"",
 		false,
 		false,
@@ -45,21 +33,25 @@ func (currentClient *Client) query() {
 			appealStreamMessage := &AppealStreamMessage{}
 			err := json.Unmarshal(d.Body, &appealStreamMessage)
 
-			logger.WithFields(logrus.Fields{
-				"error":  err,
-			}).Error("Can`t decode query callBack:")
+			if err != nil {
+				logger.WithFields(logrus.Fields{
+					"error": err,
+				}).Error("Can`t decode query callBack:")
+			}
 
 			bytesToSend, err := json.Marshal(appealStreamMessage)
 
-			logger.WithFields(logrus.Fields{
-				"error":  err,
-			}).Error("Can`t encode query callBack:")
+			if err != nil {
+				logger.WithFields(logrus.Fields{
+					"error": err,
+				}).Error("Can`t encode query callBack:")
+			}
 
-			currentClient.hub.broadcast <- bytesToSend
+			h.broadcast <- bytesToSend
 
 			logger.WithFields(logrus.Fields{
-				"appeal":  appealStreamMessage.AppealID,
-				"action":  appealStreamMessage.Action,
+				"appeal": appealStreamMessage.AppealID,
+				"action": appealStreamMessage.Action,
 			}).Info("Read message from query:")
 
 			d.Ack(false)
