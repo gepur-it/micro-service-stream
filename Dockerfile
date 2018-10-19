@@ -7,6 +7,6 @@ RUN go get github.com/gorilla/websocket
 RUN go get github.com/globalsign/mgo
 RUN go get github.com/sirupsen/logrus
 
-CMD ["go", "run", "main.go", "hub.go", "client.go"]
+CMD ["go", "run", "main.go", "hub.go", "client.go", "socket.go", "query.go"]
 EXPOSE 80
 

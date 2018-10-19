@@ -1,10 +1,10 @@
 version: '3.4'
 services:
 
-  micro-service-appeal-stream:
+  micro-service-stream:
     build: ./
-    container_name: micro-service-appeal-stream
-    image: micseres/micro-services-chat
+    container_name: micro-service-stream
+    image: micseres/micro-service-stream
     networks:
       erp:
         ipv4_address: 10.7.0.168
