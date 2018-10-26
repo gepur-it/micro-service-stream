@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	writeWait = 10 * time.Second
-	pongWait = 60 * time.Second
-	pingPeriod = (pongWait * 9) / 10
+	writeWait      = 10 * time.Second
+	pongWait       = 60 * time.Second
+	pingPeriod     = 10 * time.Second
 	maxMessageSize = 512
 )
 
@@ -34,7 +34,5 @@ type Client struct {
 }
 
 type Subscribe struct {
-	ApiKey   string `json:"apiKey"`
+	ApiKey string `json:"apiKey"`
 }
-
-
