@@ -16,29 +16,41 @@ func hub() *Hub {
 	}
 }
 
+func (h *Hub) registerClient(client *Client) {
+	h.clients[client] = true
+}
+
+func (h *Hub) unregisterClient(client *Client) {
+	if _, ok := h.clients[client]; ok {
+		delete(h.clients, client)
+		close(client.send)
+	}
+}
+
+func (h *Hub) broadcastMessage(message []byte) {
+	for client := range h.clients {
+		if len(client.subscribe.Id) != 0 {
+			select {
+			case client.send <- message:
+			default:
+				close(client.send)
+				delete(h.clients, client)
+			}
+		}
+	}
+}
+
 func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
-			h.clients[client] = true
+			h.registerClient(client)
 
 		case client := <-h.unregister:
-			if _, ok := h.clients[client]; ok {
-				delete(h.clients, client)
-				close(client.send)
-			}
+			h.unregisterClient(client)
 
 		case message := <-h.broadcast:
-			for client := range h.clients {
-				if len(client.subscribe.Id) != 0 {
-					select {
-					case client.send <- message:
-					default:
-						close(client.send)
-						delete(h.clients, client)
-					}
-				}
-			}
+			h.broadcastMessage(message)
 		}
 	}
 }
