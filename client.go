@@ -30,7 +30,7 @@ type Client struct {
 	hub       *Hub
 	conn      *websocket.Conn
 	send      chan []byte
-	subscribe Subscribe
+	subscribe User
 }
 
 type Subscribe struct {

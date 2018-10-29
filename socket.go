@@ -10,11 +10,11 @@ import (
 )
 
 type User struct {
-	ID           string    `json:"_id"`
-	Username     string    `json:"username"`
-	UserID       string    `json:"userId"`
-	ObjectGUID   string    `json:"objectGUID"`
-	LastActivity time.Time `json:"lastActivity"`
+	Id           bson.ObjectId `json:"id"        bson:"_id,omitempty"`
+	Username     string        `json:"username" bson:"username"`
+	UserID       string        `json:"userId" bson:"userId"`
+	ObjectGUID   string        `json:"objectGUID" bson:"objectGUID"`
+	LastActivity time.Time     `json:"lastActivity" bson:"lastActivity"`
 }
 
 type SocketResponse struct {
@@ -53,7 +53,7 @@ func (currentClient *Client) readPump() {
 		}).Info("Socket receive message:")
 
 		if string(message) != "." {
-			if len(currentClient.subscribe.ApiKey) == 0 {
+			if len(currentClient.subscribe.Id) == 0 {
 				subscribe := Subscribe{}
 				err = json.Unmarshal(message, &subscribe)
 
@@ -95,7 +95,11 @@ func (currentClient *Client) readPump() {
 					}).Error("Can`t encode socket response:")
 				}
 
-				currentClient.subscribe = subscribe
+				currentClient.subscribe = user
+
+				logger.WithFields(logrus.Fields{
+					"user": user,
+				}).Info("User registered:")
 				currentClient.send <- bytesToSend
 
 				logger.WithFields(logrus.Fields{
@@ -171,4 +175,12 @@ func (currentClient *Client) writePump() {
 			}).Info("Ping send:")
 		}
 	}
+}
+
+func sel(q ...string) (r bson.M) {
+	r = make(bson.M, len(q))
+	for _, s := range q {
+		r[s] = 1
+	}
+	return
 }

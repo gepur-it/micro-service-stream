@@ -30,7 +30,7 @@ func (h *Hub) run() {
 
 		case message := <-h.broadcast:
 			for client := range h.clients {
-				if len(client.subscribe.ApiKey) != 0 {
+				if len(client.subscribe.Id) != 0 {
 					select {
 					case client.send <- message:
 					default:
