@@ -5,18 +5,18 @@ import (
 	"time"
 )
 
-func setStatus(manager_id string, status bool) error {
+func setStatus(managerId string, status bool) error {
 	var err error
 
-	var updated_at = time.Now()
+	var updatedAt = time.Now()
 
-	stmt, err := MySQL.Prepare("UPDATE chat_jivosite_manager_crm set is_online=?, online_at=? where manager_id=?")
+	stmt, err := MySQL.Prepare("UPDATE chat_jivosite_manager_crm set online_at=? where manager_id=?")
 
 	if err != nil {
 		return err
 	}
 
-	stmt.Exec(status, updated_at, manager_id)
+	stmt.Exec(updatedAt, managerId)
 
 	return nil
 }

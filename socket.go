@@ -128,7 +128,8 @@ func (currentClient *Client) readPump() {
 			}
 
 			logger.WithFields(logrus.Fields{
-				"addr": currentClient.conn.RemoteAddr(),
+				"manager": currentClient.subscribe.UserID,
+				"addr":    currentClient.conn.RemoteAddr(),
 			}).Info("Recv pong:")
 		}
 	}
