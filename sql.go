@@ -10,7 +10,7 @@ func setStatus(manager_id string, status bool) error {
 
 	var updated_at = time.Now()
 
-	stmt, err := MySQL.Prepare("UPDATE chat_jivosite_manager_crm set is_online=?, updated_at=? where manager_id=?")
+	stmt, err := MySQL.Prepare("UPDATE chat_jivosite_manager_crm set is_online=?, online_at=? where manager_id=?")
 
 	if err != nil {
 		return err
