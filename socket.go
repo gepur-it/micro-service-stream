@@ -29,7 +29,6 @@ func (currentClient *Client) readPump() {
 	}()
 
 	currentClient.conn.SetReadLimit(maxMessageSize)
-	currentClient.conn.SetReadDeadline(time.Now().Add(pongWait))
 
 	for {
 		_, message, err := currentClient.conn.ReadMessage()
@@ -117,7 +116,6 @@ func (currentClient *Client) readPump() {
 				}).Info("Client subscribe:")
 			}
 		} else {
-
 			err = setStatus(currentClient.subscribe.UserID, true)
 
 			if err != nil {

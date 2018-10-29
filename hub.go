@@ -30,12 +30,10 @@ func (h *Hub) unregisterClient(client *Client) {
 func (h *Hub) broadcastMessage(message []byte) {
 	for client := range h.clients {
 		if len(client.subscribe.Id) != 0 {
-			select {
-			case client.send <- message:
-			default:
-				close(client.send)
-				delete(h.clients, client)
-			}
+			client.send <- message
+		} else {
+			close(client.send)
+			delete(h.clients, client)
 		}
 	}
 }
