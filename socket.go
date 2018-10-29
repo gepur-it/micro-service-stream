@@ -30,7 +30,6 @@ func (currentClient *Client) readPump() {
 
 	currentClient.conn.SetReadLimit(maxMessageSize)
 	currentClient.conn.SetReadDeadline(time.Now().Add(pongWait))
-	currentClient.conn.SetPongHandler(func(string) error { currentClient.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 
 	for {
 		_, message, err := currentClient.conn.ReadMessage()
@@ -48,11 +47,11 @@ func (currentClient *Client) readPump() {
 
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
 
-		logger.WithFields(logrus.Fields{
-			"addr": currentClient.conn.RemoteAddr(),
-		}).Info("Socket receive message:")
-
 		if string(message) != "." {
+			logger.WithFields(logrus.Fields{
+				"addr": currentClient.conn.RemoteAddr(),
+			}).Info("Socket receive message:")
+
 			if len(currentClient.subscribe.Id) == 0 {
 				subscribe := Subscribe{}
 				err = json.Unmarshal(message, &subscribe)
@@ -95,10 +94,21 @@ func (currentClient *Client) readPump() {
 					}).Error("Can`t encode socket response:")
 				}
 
+				err = setStatus(user.UserID, true)
+
+				if err != nil {
+					logger.WithFields(logrus.Fields{
+						"manager": user.UserID,
+						"err":     err,
+					}).Error("Manager can`t update status:")
+
+					return
+				}
+
 				currentClient.subscribe = user
 
 				logger.WithFields(logrus.Fields{
-					"user": user,
+					"user": user.Username,
 				}).Info("User registered:")
 				currentClient.send <- bytesToSend
 
@@ -107,6 +117,18 @@ func (currentClient *Client) readPump() {
 				}).Info("Client subscribe:")
 			}
 		} else {
+
+			err = setStatus(currentClient.subscribe.UserID, true)
+
+			if err != nil {
+				logger.WithFields(logrus.Fields{
+					"manager": currentClient.subscribe.UserID,
+					"err":     err,
+				}).Error("Manager can`t update status:")
+
+				return
+			}
+
 			logger.WithFields(logrus.Fields{
 				"addr": currentClient.conn.RemoteAddr(),
 			}).Info("Recv pong:")
@@ -116,7 +138,7 @@ func (currentClient *Client) readPump() {
 
 func (currentClient *Client) writePump() {
 
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(pingPeriod)
 
 	defer func() {
 		ticker.Stop()
@@ -175,12 +197,4 @@ func (currentClient *Client) writePump() {
 			}).Info("Ping send:")
 		}
 	}
-}
-
-func sel(q ...string) (r bson.M) {
-	r = make(bson.M, len(q))
-	for _, s := range q {
-		r[s] = 1
-	}
-	return
 }
