@@ -17,6 +17,7 @@ func setStatus(managerId string, status bool) error {
 	}
 
 	stmt.Exec(updatedAt, managerId)
+	stmt.Close()
 
 	return nil
 }
@@ -31,6 +32,7 @@ func selOfflineAll() error {
 	}
 
 	stmt.Exec(false)
+	stmt.Close()
 
 	return nil
 }
