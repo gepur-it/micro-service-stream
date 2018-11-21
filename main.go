@@ -7,8 +7,10 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
+	"github.com/zbindenren/logrus_mail"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -29,15 +31,44 @@ func failOnError(err error, msg string) {
 	}
 }
 
+func getenvInt(key string) (int, error) {
+	s := os.Getenv(key)
+	v, err := strconv.Atoi(s)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return v, nil
+}
+
 func init() {
 	err := godotenv.Load()
 	if err != nil {
 		panic(fmt.Sprintf("%s: %s", "Error loading .env file", err))
 	}
 
+	port, err := getenvInt("LOGTOEMAIL_SMTP_PORT")
+
+	if err != nil {
+		panic(fmt.Sprintf("%s: %s", "Error read smtp port from env", err))
+	}
+
+	hook, err := logrus_mail.NewMailAuthHook(
+		os.Getenv("LOGTOEMAIL_APP_NAME"),
+		os.Getenv("LOGTOEMAIL_SMTP_HOST"),
+		port,
+		os.Getenv("LOGTOEMAIL_SMTP_FROM"),
+		os.Getenv("LOGTOEMAIL_SMTP_TO"),
+		os.Getenv("LOGTOEMAIL_SMTP_USERNAME"),
+		os.Getenv("LOGTOEMAIL_SMTP_PASSWORD"),
+	)
+
 	logger.SetLevel(logrus.DebugLevel)
 	logger.SetOutput(os.Stdout)
 	logger.SetFormatter(&logrus.TextFormatter{})
+
+	logger.Hooks.Add(hook)
 
 	cs := fmt.Sprintf("amqp://%s:%s@%s:%s/%s",
 		os.Getenv("RABBITMQ_ERP_LOGIN"),
@@ -85,6 +116,7 @@ func init() {
 	MySQL = db
 
 	failOnError(err, "Failed to connect MySQL")
+	logger.WithFields(logrus.Fields{}).Info("Server init:")
 }
 
 func webSockets(hub *Hub, w http.ResponseWriter, r *http.Request) {
@@ -104,7 +136,7 @@ func webSockets(hub *Hub, w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	logger.Info("Application start:")
+	logger.WithFields(logrus.Fields{}).Info("Server starting:")
 
 	err := selOfflineAll()
 
@@ -132,4 +164,5 @@ func main() {
 	defer AMQPConnection.Close()
 	defer AMQPChannel.Close()
 	defer MgoSession.Close()
+	logger.WithFields(logrus.Fields{}).Info("Server stopped:")
 }
