@@ -1,5 +1,18 @@
 package main
 
+import (
+	"encoding/json"
+	"github.com/sirupsen/logrus"
+)
+
+type QueryCommand struct {
+	Module     string                 `json:"module"`
+	Action     string                 `json:"action"`
+	Type       string                 `json:"type"`
+	Recipients []string               `json:"recipients"`
+	Payload    map[string]interface{} `json:"payload"`
+}
+
 func (h *Hub) query() {
 	msgs, err := AMQPChannel.Consume(
 		"erp_to_socket_appeal",
@@ -18,9 +31,24 @@ func (h *Hub) query() {
 	go func() {
 		for d := range msgs {
 			logger.Info("Query receive message:")
+			queryCommand := QueryCommand{}
 
-			h.broadcast <- d.Body
-			d.Ack(false)
+			err = json.Unmarshal(d.Body, &queryCommand)
+
+			if err != nil {
+				logger.WithFields(logrus.Fields{
+					"error": err,
+				}).Error("Can`t decode query command:")
+			}
+
+			if queryCommand.Type == "subscribe" {
+				h.subscribe <- queryCommand
+				d.Ack(false)
+			} else {
+				h.broadcast <- d.Body
+				d.Ack(false)
+			}
+
 		}
 	}()
 
