@@ -24,6 +24,9 @@ func hub() *Hub {
 }
 
 func (h *Hub) registerClient(client *Client) {
+	if client == nil {
+		return
+	}
 	h.clients[client] = true
 }
 
@@ -48,8 +51,8 @@ func (h *Hub) broadcastMessage(message []byte) {
 func (h *Hub) subscribeMessage(message QueryCommand) {
 	for client := range h.clients {
 		if len(client.subscribe.Id) != 0 {
-			for recipient := range message.Recipients {
-				if message.Recipients[recipient] == client.subscribe.UserID {
+			for _, recipient := range message.Recipients {
+				if recipient == client.subscribe.UserID {
 					bytesToSend, err := json.Marshal(message)
 
 					if err != nil {
