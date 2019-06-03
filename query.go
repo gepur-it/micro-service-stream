@@ -30,6 +30,7 @@ func (h *Hub) query() {
 
 	go func() {
 		for d := range msgs {
+			h.mu.Lock()
 			logger.Info("Query receive message:")
 			queryCommand := QueryCommand{}
 
@@ -49,6 +50,7 @@ func (h *Hub) query() {
 				d.Ack(false)
 			}
 
+			h.mu.Unlock()
 		}
 	}()
 
