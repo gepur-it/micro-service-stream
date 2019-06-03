@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/sirupsen/logrus"
+	"sync"
 )
 
 type Hub struct {
@@ -11,6 +12,7 @@ type Hub struct {
 	subscribe  chan QueryCommand
 	register   chan *Client
 	unregister chan *Client
+	mu         sync.Mutex
 }
 
 func hub() *Hub {
