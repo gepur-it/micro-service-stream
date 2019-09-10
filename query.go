@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/sirupsen/logrus"
+	"github.com/streadway/amqp"
 )
 
 type QueryCommand struct {
@@ -23,35 +24,42 @@ func (h *Hub) query() {
 		false,
 		nil,
 	)
+    notify := AMQPConnection.NotifyClose(make(chan *amqp.Error))
 
 	failOnError(err, "Failed to register a consumer")
 
 	forever := make(chan bool)
 
 	go func() {
-		for d := range msgs {
-			h.mu.Lock()
-			logger.Info("Query receive message:")
-			queryCommand := QueryCommand{}
+	    for {
+	        select {
+	            case err = <- notify:
+	                failOnError(err, "Queue is dead")
+	                break
+	            case d := <-msgs:
+	                h.mu.Lock()
+              		logger.Info("Query receive message:")
+              		queryCommand := QueryCommand{}
 
-			err = json.Unmarshal(d.Body, &queryCommand)
+              		err = json.Unmarshal(d.Body, &queryCommand)
 
-			if err != nil {
-				logger.WithFields(logrus.Fields{
-					"error": err,
-				}).Error("Can`t decode query command:")
-			}
+              		if err != nil {
+              			logger.WithFields(logrus.Fields{
+                  			"error": err,
+                		}).Error("Can`t decode query command:")
+                	}
 
-			if queryCommand.Type == "subscribe" {
-				h.subscribe <- queryCommand
-				d.Ack(false)
-			} else {
-				h.broadcast <- d.Body
-				d.Ack(false)
-			}
+                	if queryCommand.Type == "subscribe" {
+                		h.subscribe <- queryCommand
+                		d.Ack(false)
+                	} else {
+                		h.broadcast <- d.Body
+                		d.Ack(false)
+                	}
 
-			h.mu.Unlock()
-		}
+        			h.mu.Unlock()
+	        }
+	    }
 	}()
 
 	<-forever
