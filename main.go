@@ -138,16 +138,6 @@ func webSockets(hub *Hub, w http.ResponseWriter, r *http.Request) {
 func main() {
 	logger.WithFields(logrus.Fields{}).Info("Server starting:")
 
-	err := selOfflineAll()
-
-	if err != nil {
-		logger.WithFields(logrus.Fields{
-			"err": err,
-		}).Error("Managers can`t set offline status:")
-
-		return
-	}
-
 	hub := hub()
 
 	go hub.run()

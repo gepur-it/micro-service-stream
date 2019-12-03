@@ -93,17 +93,6 @@ func (currentClient *Client) readPump() {
 					}).Error("Can`t encode socket response:")
 				}
 
-				err = setStatus(user.UserID, true)
-
-				if err != nil {
-					logger.WithFields(logrus.Fields{
-						"manager": user.UserID,
-						"err":     err,
-					}).Error("Manager can`t update status:")
-
-					return
-				}
-
 				currentClient.subscribe = user
 
 				logger.WithFields(logrus.Fields{
@@ -116,17 +105,6 @@ func (currentClient *Client) readPump() {
 				}).Info("Client subscribe:")
 			}
 		} else {
-			err = setStatus(currentClient.subscribe.UserID, true)
-
-			if err != nil {
-				logger.WithFields(logrus.Fields{
-					"manager": currentClient.subscribe.UserID,
-					"err":     err,
-				}).Error("Manager can`t update status:")
-
-				return
-			}
-
 			logger.WithFields(logrus.Fields{
 				"manager": currentClient.subscribe.UserID,
 				"addr":    currentClient.conn.RemoteAddr(),
