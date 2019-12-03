@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/globalsign/mgo"
 	"github.com/joho/godotenv"
