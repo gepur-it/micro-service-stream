@@ -18,7 +18,6 @@ var AMQPConnection *amqp.Connection
 var AMQPChannel *amqp.Channel
 var MgoCollection *mgo.Collection
 var MgoSession *mgo.Session
-var MySQL *sql.DB
 
 var logger = logrus.New()
 
@@ -104,18 +103,6 @@ func init() {
 	MgoSession = mgoSession
 	MgoCollection = mgoSession.DB(os.Getenv("MONGODB_DB")).C("UserApiKey")
 
-	db, err := sql.Open("mysql", fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/%s",
-		os.Getenv("MYSQL_DATABASE_USER"),
-		os.Getenv("MYSQL_DATABASE_PASSWORD"),
-		os.Getenv("MYSQL_DATABASE_HOST"),
-		os.Getenv("MYSQL_DATABASE_PORT"),
-		os.Getenv("MYSQL_DATABASE_DB"),
-	))
-
-	MySQL = db
-
-	failOnError(err, "Failed to connect MySQL")
 	logger.WithFields(logrus.Fields{}).Info("Server init:")
 }
 
