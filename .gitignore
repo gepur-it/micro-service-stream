@@ -2,5 +2,6 @@
 pkg
 src
 .env
+docker-compose.override.yml
 var
 micro-service-stream

@@ -1,24 +1,13 @@
 version: '3.4'
 services:
 
-  micro-service-stream:
+  erp_ws-stream:
     build: ./
-    container_name: micro-service-stream
-    image: micseres/micro-service-stream
     networks:
-      erp:
-        ipv4_address: 10.7.0.168
-      go:
-        ipv4_address: 10.9.0.168
-    ports:
-      - "8068:80"
-    volumes:
-      - ./:/app
+      - site
     restart: always
 
 networks:
-  go:
-    external: true
-  erp:
-    external: true
+  site:
+    name: docker_site
 #docker network create --gateway 10.9.0.1 --subnet 10.9.0.0/24 go

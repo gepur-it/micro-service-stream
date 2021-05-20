@@ -1,0 +1,6 @@
+version: '3.4'
+services:
+
+  erp_ws-stream:
+    ports:
+      - "8068:80"
