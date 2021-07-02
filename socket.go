@@ -24,6 +24,12 @@ type SocketResponse struct {
 
 func (currentClient *Client) readPump() {
 	defer func() {
+		if r := recover(); r != nil {
+			logger.WithFields(logrus.Fields{
+				"error": r,
+				"addr":  currentClient.conn.RemoteAddr(),
+			}).Error("Reader panic error:")
+		}
 		currentClient.hub.unregister <- currentClient
 		currentClient.conn.Close()
 	}()
@@ -118,6 +124,12 @@ func (currentClient *Client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
 
 	defer func() {
+		if r := recover(); r != nil {
+			logger.WithFields(logrus.Fields{
+				"error": r,
+				"addr":  currentClient.conn.RemoteAddr(),
+			}).Error("Writer panic error:")
+		}
 		ticker.Stop()
 		currentClient.conn.Close()
 	}()
